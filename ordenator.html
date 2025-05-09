@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StreamPort - Tu Portal Deportivo</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --secondary: #10b981;
+      --accent: #f59e0b;
+      --dark: #0f172a;
+      --light: #f8fafc;
+      --gray: #64748b;
+      --card-bg: #1e293b;
+      --header-bg: #111827;
+    }
+    
+    * { 
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      color: var(--light);
+      line-height: 1.6;
+    }
+    
+    .header {
+      background-color: var(--header-bg);
+      padding: 1rem 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+    
+    .nav-container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--light);
+      text-decoration: none;
+    }
+    
+    .logo span {
+      color: var(--accent);
+    }
+    
+    .logo i {
+      color: var(--primary);
+    }
+    
+    .nav-menu {
+      display: flex;
+      list-style: none;
+    }
+    
+    .nav-item {
+      margin-left: 1.5rem;
+    }
+    
+    .nav-link {
+      color: var(--light);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 1rem;
+      transition: color 0.3s;
+      padding: 0.5rem 0;
+      position: relative;
+    }
+    
+    .nav-link:hover {
+      color: var(--primary);
+    }
+    
+    .nav-link.active {
+      color: var(--primary);
+    }
+    
+    .nav-link.active::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background-color: var(--primary);
+    }
+    
+    .menu-toggle {
+      display: none;
+      cursor: pointer;
+      font-size: 1.5rem;
+    }
+    
+    .container {
+      max-width: 1280px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+    
+    .hero {
+      background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('/api/placeholder/1200/400') center/cover no-repeat;
+      padding: 4rem 2rem;
+      text-align: center;
+      border-radius: 1rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+    
+    .hero h1 {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    
+    .hero p {
+      font-size: 1.2rem;
+      max-width: 800px;
+      margin: 0 auto 1.5rem;
+      color: var(--light);
+    }
+    
+    .main-content {
+      background-color: var(--card-bg);
+      border-radius: 1rem;
+      padding: 2rem;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+    
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    
+    .search-box {
+      flex: 1;
+      position: relative;
+    }
+    
+    .search-box input {
+      width: 100%;
+      padding: 0.75rem 1rem 0.75rem 2.5rem;
+      border-radius: 0.5rem;
+      border: 1px solid var(--gray);
+      background-color: rgba(255, 255, 255, 0.1);
+      color: var(--light);
+      font-size: 1rem;
+    }
+    
+    .search-box i {
+      position: absolute;
+      left: 0.75rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--gray);
+    }
+    
+    .filter-dropdown {
+      min-width: 180px;
+      padding: 0.75rem;
+      border-radius: 0.5rem;
+      border: 1px solid var(--gray);
+      background-color: rgba(255, 255, 255, 0.1);
+      color: var(--light);
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    
+    .filter-dropdown option {
+      background-color: var(--dark);
+    }
+    
+    .table-container {
+      overflow-x: auto;
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    
+    th, td {
+      padding: 1rem;
+      text-align: left;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    th {
+      font-size: 0.875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--gray);
+    }
+    
+    tr:hover {
+      background-color: rgba(255, 255, 255, 0.05);
+    }
+    
+    .match-info {
+      display: flex;
+      align-items: center;
+    }
+    
+    .sport-icon {
+      margin-right: 1rem;
+      font-size: 1.5rem;
+      width: 2.5rem;
+      height: 2.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      color: var(--accent);
+    }
+    
+    .match-teams {
+      font-weight: 600;
+      font-size: 1rem;
+    }
+    
+    .match-league {
+      font-size: 0.875rem;
+      color: var(--gray);
+    }
+    
+    .match-time {
+      font-weight: 500;
+      color: var(--accent);
+    }
+    
+    .match-status {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    
+    .status-live {
+      background-color: rgba(239, 68, 68, 0.2);
+      color: #ef4444;
+    }
+    
+    .status-upcoming {
+      background-color: rgba(16, 185, 129, 0.2);
+      color: #10b981;
+    }
+    
+    .status-finished {
+      background-color: rgba(100, 116, 139, 0.2);
+      color: #64748b;
+    }
+    
+    .canales {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    
+    .canal {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.25rem;
+      background-color: var(--primary);
+      color: white;
+      padding: 0.5rem 0.75rem;
+      border-radius: 0.375rem;
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 0.875rem;
+      transition: all 0.2s;
+    }
+    
+    .canal:hover {
+      background-color: var(--primary-dark);
+      transform: translateY(-2px);
+    }
+    
+    .pagination {
+      display: flex;
+      justify-content: center;
+      margin-top: 2rem;
+      gap: 0.5rem;
+    }
+    
+    .page-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 2.5rem;
+      height: 2.5rem;
+      border-radius: 0.375rem;
+      background-color: rgba(255, 255, 255, 0.1);
+      color: var(--light);
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+    
+    .page-btn:hover, .page-btn.active {
+      background-color: var(--primary);
+    }
+    
+    footer {
+      background-color: var(--header-bg);
+      padding: 2rem 0;
+      margin-top: 3rem;
+    }
+    
+    .footer-content {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 1rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    
+    .footer-logo {
+      font-size: 1.5rem;
+      font-weight: 800;
+      margin-bottom: 1rem;
+    }
+    
+    .social-links {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .social-link {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 2.5rem;
+      height: 2.5rem;
+      border-radius: 50%;
+      background-color: rgba(255, 255, 255, 0.1);
+      color: var(--light);
+      font-size: 1.25rem;
+      transition: all 0.2s;
+    }
+    
+    .social-link:hover {
+      background-color: var(--primary);
+      transform: translateY(-3px);
+    }
+    
+    .footer-nav {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .footer-link {
+      color: var(--gray);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    
+    .footer-link:hover {
+      color: var(--light);
+    }
+    
+    .copyright {
+      color: var(--gray);
+      text-align: center;
+      font-size: 0.875rem;
+    }
+    
+    /* Estilos para modo oscuro/claro */
+    .theme-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 2.5rem;
+      height: 2.5rem;
+      border-radius: 50%;
+      background-color: rgba(255, 255, 255, 0.1);
+      color: var(--light);
+      cursor: pointer;
+      font-size: 1.25rem;
+      transition: all 0.2s;
+    }
+    
+    .theme-toggle:hover {
+      background-color: var(--primary);
+    }
+    
+    /* Media queries */
+    @media (max-width: 992px) {
+      .hero h1 {
+        font-size: 2rem;
+      }
+      
+      .hero p {
+        font-size: 1rem;
+      }
+    }
+    
+    @media (max-width: 768px) {
+      .menu-toggle {
+        display: block;
+      }
+      
+      .nav-menu {
+        position: fixed;
+        left: -100%;
+        top: 4rem;
+        flex-direction: column;
+        background-color: var(--header-bg);
+        width: 100%;
+        text-align: center;
+        transition: 0.3s;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        padding: 2rem 0;
+      }
+      
+      .nav-menu.active {
+        left: 0;
+      }
+      
+      .nav-item {
+        margin: 1.5rem 0;
+      }
+      
+      .filters {
+        flex-direction: column;
+      }
+      
+      th, td {
+        padding: 0.75rem 0.5rem;
+      }
+      
+      .sport-icon {
+        margin-right: 0.5rem;
+        font-size: 1rem;
+        width: 2rem;
+        height: 2rem;
+      }
+      
+      .match-teams {
+        font-size: 0.875rem;
+      }
+      
+      .match-league {
+        font-size: 0.75rem;
+      }
+    }
+    
+    @media (max-width: 576px) {
+      .hero {
+        padding: 2rem 1rem;
+      }
+      
+      .hero h1 {
+        font-size: 1.75rem;
+      }
+      
+      .main-content {
+        padding: 1rem;
+      }
+      
+      .sport-icon {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="nav-container">
+      <a href="#" class="logo">
+        <i class="fas fa-play-circle"></i>
+        Stream<span>Port</span>
+      </a>
+      <div class="menu-toggle" id="menu-toggle">
+        <i class="fas fa-bars"></i>
+      </div>
+      <ul class="nav-menu" id="nav-menu">
+        <li class="nav-item">
+          <a href="#" class="nav-link active">Inicio</a>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link">Fútbol</a>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link">Baloncesto</a>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link">Tenis</a>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link">Más Deportes</a>
+        </li>
+      </ul>
+      <div class="theme-toggle" id="theme-toggle">
+        <i class="fas fa-moon"></i>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    <section class="hero">
+      <h1>Tu Portal de Streaming Deportivo</h1>
+      <p>Encuentra todos los partidos en vivo y disfruta del mejor contenido deportivo en un solo lugar</p>
+    </section>
+
+    <section class="main-content">
+      <div class="filters">
+        <div class="search-box">
+          <i class="fas fa-search"></i>
+          <input type="text" id="filtro" placeholder="Buscar partido, equipo o competición...">
+        </div>
+        <select class="filter-dropdown" id="filter-deporte">
+          <option value="todos">Todos los deportes</option>
+          <option value="futbol">Fútbol</option>
+          <option value="baloncesto">Baloncesto</option>
+          <option value="tenis">Tenis</option>
+          <option value="otros">Otros deportes</option>
+        </select>
+        <select class="filter-dropdown" id="filter-estado">
+          <option value="todos">Todos los estados</option>
+          <option value="live">En vivo</option>
+          <option value="upcoming">Próximos</option>
+          <option value="finished">Finalizados</option>
+        </select>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Evento</th>
+              <th>Horario</th>
+              <th>Estado</th>
+              <th>Canales</th>
+            </tr>
+          </thead>
+          <tbody id="tabla-partidos"></tbody>
+        </table>
+      </div>
+
+      <div class="pagination">
+        <a href="#" class="page-btn"><i class="fas fa-chevron-left"></i></a>
+        <a href="#" class="page-btn active">1</a>
+        <a href="#" class="page-btn">2</a>
+        <a href="#" class="page-btn">3</a>
+        <a href="#" class="page-btn"><i class="fas fa-chevron-right"></i></a>
+      </div>
+    </section>
+  </div>
+
+  <footer>
+    <div class="footer-content">
+      <div class="footer-logo">
+        <i class="fas fa-play-circle"></i>
+        Stream<span>Port</span>
+      </div>
+      <div class="social-links">
+        <a href="#" class="social-link"><i class="fab fa-facebook-f"></i></a>
+        <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
+        <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
+        <a href="#" class="social-link"><i class="fab fa-youtube"></i></a>
+      </div>
+      <div class="footer-nav">
+        <a href="#" class="footer-link">Inicio</a>
+        <a href="#" class="footer-link">Quiénes Somos</a>
+        <a href="#" class="footer-link">Contacto</a>
+        <a href="#" class="footer-link">Términos y Condiciones</a>
+        <a href="#" class="footer-link">Política de Privacidad</a>
+      </div>
+      <div class="copyright">
+        &copy; 2025 StreamPort. Todos los derechos reservados.
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Funcionalidad del menú responsive
+    const menuToggle = document.getElementById('menu-toggle');
+    const navMenu = document.getElementById('nav-menu');
+    
+    menuToggle.addEventListener('click', () => {
+      navMenu.classList.toggle('active');
+      menuToggle.innerHTML = navMenu.classList.contains('active') 
+        ? '<i class="fas fa-times"></i>' 
+        : '<i class="fas fa-bars"></i>';
+    });
+    
+    // Funcionalidad para cambiar tema (aunque solo se simula el botón)
+    const themeToggle = document.getElementById('theme-toggle');
+    themeToggle.addEventListener('click', () => {
+      const icon = themeToggle.querySelector('i');
+      if (icon.classList.contains('fa-moon')) {
+        icon.classList.remove('fa-moon');
+        icon.classList.add('fa-sun');
+      } else {
+        icon.classList.remove('fa-sun');
+        icon.classList.add('fa-moon');
+      }
+      // Aquí se implementaría el cambio real de tema
+    });
+    
+    // Datos de ejemplo (simulando la carga del JSON)
+    const deportes = {
+      'futbol': { icon: 'fas fa-futbol' },
+      'baloncesto': { icon: 'fas fa-basketball-ball' },
+      'tenis': { icon: 'fas fa-table-tennis' },
+      'rugby': { icon: 'fas fa-football-ball' },
+      'boxeo': { icon: 'fas fa-fist-raised' },
+      'otros': { icon: 'fas fa-running' }
+    };
+    
+    const estadosPartido = {
+      'live': { class: 'status-live', text: 'En Vivo' },
+      'upcoming': { class: 'status-upcoming', text: 'Próximo' },
+      'finished': { class: 'status-finished', text: 'Finalizado' }
+    };
+    
+    // Crear partidos de ejemplo con más detalles
+    let partidos = [
+      {
+        titulo: "Real Madrid vs Barcelona",
+        competicion: "La Liga",
+        hora: "20:00",
+        deporte: "futbol",
+        estado: "live",
+        canales: ["https://example.com/canal1", "https://example.com/canal2", "https://example.com/canal3"]
+      },
+      {
+        titulo: "Liverpool vs Manchester United",
+        competicion: "Premier League",
+        hora: "16:30",
+        deporte: "futbol",
+        estado: "upcoming",
+        canales: ["https://example.com/canal1", "https://example.com/canal4"]
+      },
+      {
+        titulo: "Lakers vs Warriors",
+        competicion: "NBA",
+        hora: "03:30",
+        deporte: "baloncesto",
+        estado: "upcoming",
+        canales: ["https://example.com/canal5", "https://example.com/canal6"]
+      },
+      {
+        titulo: "Nadal vs Djokovic",
+        competicion: "Roland Garros",
+        hora: "15:00",
+        deporte: "tenis",
+        estado: "finished",
+        canales: ["https://example.com/canal7"]
+      },
+      {
+        titulo: "PSG vs Bayern Munich",
+        competicion: "Champions League",
+        hora: "21:00",
+        deporte: "futbol",
+        estado: "upcoming",
+        canales: ["https://example.com/canal1", "https://example.com/canal8"]
+      },
+      {
+        titulo: "Celtics vs Nets",
+        competicion: "NBA",
+        hora: "01:00",
+        deporte: "baloncesto",
+        estado: "live",
+        canales: ["https://example.com/canal5"]
+      }
+    ];
+    
+    // Intentar cargar datos reales del JSON si existe
+    fetch('partidos_completos.json')
+      .then(res => res.json())
+      .then(data => {
+        // Transformar los datos al nuevo formato
+        const transformedData = data.map(p => {
+          // Detectar deporte basado en título o usar "otros" por defecto
+          let deporte = "otros";
+          const titulo = p.titulo.toLowerCase();
+          if (titulo.includes("madrid") || titulo.includes("barça") || titulo.includes("liga")) {
+            deporte = "futbol";
+          } else if (titulo.includes("nba") || titulo.includes("basket")) {
+            deporte = "baloncesto";
+          } else if (titulo.includes("nadal") || titulo.includes("open")) {
+            deporte = "tenis";
+          }
+          
+          // Asignar un estado aleatorio para demostración
+          const estados = ["live", "upcoming", "finished"];
+          const estado = estados[Math.floor(Math.random() * estados.length)];
+          
+          // Extraer competición si es posible o usar un valor genérico
+          let competicion = "Competición";
+          if (titulo.includes("liga")) {
+            competicion = "LaLiga";
+          } else if (titulo.includes("premier")) {
+            competicion = "Premier League";
+          } else if (titulo.includes("champions")) {
+            competicion = "Champions League";
+          }
+          
+          return {
+            titulo: p.titulo,
+            competicion: competicion,
+            hora: p.hora,
+            deporte: deporte,
+            estado: estado,
+            canales: Array.isArray(p.enlace) ? p.enlace : [p.enlace]
+          };
+        });
+        
+        // Si hay datos, reemplazar nuestros ejemplos
+        if (transformedData.length > 0) {
+          partidos = transformedData;
+        }
+        
+        // Renderizar tabla con los datos
+        renderTabla(partidos);
+      })
+      .catch(err => {
+        console.log("Usando datos de ejemplo debido a error o falta de JSON:", err);
+        renderTabla(partidos);
+      });
+    
+    function renderTabla(data) {
+      const tbody = document.getElementById('tabla-partidos');
+      tbody.innerHTML = '';
+      
+      if (data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center;">No se encontraron partidos que coincidan con tu búsqueda.</td></tr>';
+        return;
+      }
+      
+      data.forEach(p => {
+        const deporteInfo = deportes[p.deporte] || deportes['otros'];
+        const estadoInfo = estadosPartido[p.estado] || estadosPartido['upcoming'];
+        
+        const fila = `
+          <tr>
+            <td>
+              <div class="match-info">
+                <div class="sport-icon">
+                  <i class="${deporteInfo.icon}"></i>
+                </div>
+                <div>
+                  <div class="match-teams">${p.titulo}</div>
+                  <div class="match-league">${p.competicion}</div>
+                </div>
+              </div>
+            </td>
+            <td class="match-time">${p.hora}</td>
+            <td>
+              <span class="match-status ${estadoInfo.class}">${estadoInfo.text}</span>
+            </td>
+            <td>
+              <div class="canales">
+                ${p.canales.map((enlace, i) => 
+                  `<a class="canal" href="${enlace}" target="_blank">
+                    <i class="fas fa-play"></i> Canal ${i + 1}
+                  </a>`
+                ).join('')}
+              </div>
+            </td>
+          </tr>
+        `;
+        tbody.innerHTML += fila;
+      });
+    }
+    
+    // Funcionalidad de filtrado
+    const filtroTexto = document.getElementById('filtro');
+    const filtroDeporte = document.getElementById('filter-deporte');
+    const filtroEstado = document.getElementById('filter-estado');
+    
+    function aplicarFiltros() {
+      const texto = filtroTexto.value.toLowerCase();
+      const deporte = filtroDeporte.value;
+      const estado = filtroEstado.value;
+      
+      const filtrados = partidos.filter(p => {
+        const coincideTexto = p.titulo.toLowerCase().includes(texto) || 
+                             p.competicion.toLowerCase().includes(texto);
+        const coincideDeporte = deporte === 'todos' || p.deporte === deporte;
+        const coincideEstado = estado === 'todos' || p.estado === estado;
+        
+        return coincideTexto && coincideDeporte && coincideEstado;
+      });
+      
+      renderTabla(filtrados);
+    }
+    
+    filtroTexto.addEventListener('input', aplicarFiltros);
+    filtroDeporte.addEventListener('change', aplicarFiltros);
+    filtroEstado.addEventListener('change', aplicarFiltros);
+    
+    // Inicializar con todos los partidos
+    renderTabla(partidos);
+    
+    // Simulación de paginación (solo visual)
+    document.querySelectorAll('.page-btn').forEach(btn => {
+      btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        document.querySelector('.page-btn.active').classList.remove('active');
+        this.classList.add('active');
+      });
+    });
+
+    // ... (todo tu script original aquí)
+
+const API_TOKEN = "ee4bba27209c4284a551310fb797d8c3";
+const API_URL = "https://api.football-data.org/v4/matches";
+
+function actualizarEstadoConAPI() {
+  fetch(API_URL, {
+    headers: {
+      "X-Auth-Token": API_TOKEN
+    }
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (!data.matches) return;
+
+    partidos = partidos.map(partido => {
+      const match = data.matches.find(m => {
+        const tituloAPI = `${m.homeTeam.name} vs ${m.awayTeam.name}`.toLowerCase();
+        const tituloUsuario = partido.titulo.toLowerCase();
+        return tituloUsuario.includes(m.homeTeam.name.toLowerCase()) && 
+               tituloUsuario.includes(m.awayTeam.name.toLowerCase());
+      });
+
+      if (match) {
+        switch (match.status) {
+          case "SCHEDULED":
+            partido.estado = "upcoming"; break;
+          case "IN_PLAY":
+          case "PAUSED":
+            partido.estado = "live"; break;
+          case "FINISHED":
+          case "AWARDED":
+            partido.estado = "finished"; break;
+        }
+      }
+
+      return partido;
+    });
+
+    renderTabla(partidos);
+  })
+  .catch(err => {
+    console.warn("Error al consultar Football-Data API:", err);
+  });
+}
+
+// Luego de cargar tu JSON original
+fetch('partidos_completos.json')
+  .then(res => res.json())
+  .then(data => {
+    const transformedData = data.map(p => {
+      let deporte = "otros";
+      const titulo = p.titulo.toLowerCase();
+      if (titulo.includes("madrid") || titulo.includes("barça") || titulo.includes("liga")) {
+        deporte = "futbol";
+      } else if (titulo.includes("nba") || titulo.includes("basket")) {
+        deporte = "baloncesto";
+      } else if (titulo.includes("nadal") || titulo.includes("open")) {
+        deporte = "tenis";
+      }
+
+      const estados = ["live", "upcoming", "finished"];
+      const estado = estados[Math.floor(Math.random() * estados.length)];
+
+      let competicion = "Competición";
+      if (titulo.includes("liga")) {
+        competicion = "LaLiga";
+      } else if (titulo.includes("premier")) {
+        competicion = "Premier League";
+      } else if (titulo.includes("champions")) {
+        competicion = "Champions League";
+      }
+
+      return {
+        titulo: p.titulo,
+        competicion: competicion,
+        hora: p.hora,
+        deporte: deporte,
+        estado: estado,
+        canales: Array.isArray(p.enlace) ? p.enlace : [p.enlace]
+      };
+    });
+
+    if (transformedData.length > 0) {
+      partidos = transformedData;
+    }
+
+    actualizarEstadoConAPI();
+  })
+  .catch(err => {
+    console.log("Usando datos de ejemplo debido a error o falta de JSON:", err);
+    renderTabla(partidos);
+  });
+
+  </script>
+  
+</body>
+</html>
