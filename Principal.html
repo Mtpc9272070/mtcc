@@ -531,6 +531,9 @@
       <div class="theme-toggle" id="theme-toggle">
         <i class="fas fa-moon"></i>
       </div>
+      <button class="logout-btn" id="logout-btn" style="margin-left: 1rem; background-color: transparent; border: 1px solid #f87171; color: #f87171; padding: 0.5rem 1rem; border-radius: 0.375rem; cursor: pointer;">
+        <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+      </button>
     </div>
   </header>
 
@@ -1040,6 +1043,22 @@ fetch('partidos_completos.json')
       navigator.serviceWorker.register('service-worker.js')
         .then(() => console.log('Service Worker registrado'));
     }
+  </script>
+  <script>
+    const usuario = localStorage.getItem('usuario');
+  
+    if (!usuario) {
+      // Si no hay sesión, redirigir al login
+      window.location.href = 'index.html';
+    } else {
+      // Opcional: mostrar el nombre en algún lugar
+      console.log("Sesión activa para:", usuario);
+    }
+    document.getElementById('logout-btn')?.addEventListener('click', () => {
+  localStorage.removeItem('usuario');
+  window.location.href = 'po.html';
+});
+
   </script>
   
 </body>
