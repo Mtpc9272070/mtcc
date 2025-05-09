@@ -1,7 +1,12 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+  <link rel="manifest" href="manifest.json">
+<link rel="icon" href="logo.png">
+<meta name="theme-color" content="#2563eb">
+
   <meta charset="UTF-8">
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>StreamPort - Tu Portal Deportivo</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -562,7 +567,7 @@
             <tr>
               <th>Evento</th>
               <th>Horario</th>
-              <th>Estado</th>
+              <th></th>
               <th>Canales</th>
             </tr>
           </thead>
@@ -701,57 +706,48 @@
     
     // Intentar cargar datos reales del JSON si existe
     fetch('partidos_completos.json')
-      .then(res => res.json())
-      .then(data => {
-        // Transformar los datos al nuevo formato
-        const transformedData = data.map(p => {
-          // Detectar deporte basado en título o usar "otros" por defecto
-          let deporte = "otros";
-          const titulo = p.titulo.toLowerCase();
-          if (titulo.includes("madrid") || titulo.includes("barça") || titulo.includes("liga")) {
-            deporte = "futbol";
-          } else if (titulo.includes("nba") || titulo.includes("basket")) {
-            deporte = "baloncesto";
-          } else if (titulo.includes("nadal") || titulo.includes("open")) {
-            deporte = "tenis";
-          }
-          
-          // Asignar un estado aleatorio para demostración
-          const estados = ["live", "upcoming", "finished"];
-          const estado = estados[Math.floor(Math.random() * estados.length)];
-          
-          // Extraer competición si es posible o usar un valor genérico
-          let competicion = "Competición";
-          if (titulo.includes("liga")) {
-            competicion = "LaLiga";
-          } else if (titulo.includes("premier")) {
-            competicion = "Premier League";
-          } else if (titulo.includes("champions")) {
-            competicion = "Champions League";
-          }
-          
-          return {
-            titulo: p.titulo,
-            competicion: competicion,
-            hora: p.hora,
-            deporte: deporte,
-            estado: estado,
-            canales: Array.isArray(p.enlace) ? p.enlace : [p.enlace]
-          };
-        });
-        
-        // Si hay datos, reemplazar nuestros ejemplos
-        if (transformedData.length > 0) {
-          partidos = transformedData;
-        }
-        
-        // Renderizar tabla con los datos
-        renderTabla(partidos);
-      })
-      .catch(err => {
-        console.log("Usando datos de ejemplo debido a error o falta de JSON:", err);
-        renderTabla(partidos);
-      });
+  .then(res => res.json())
+  .then(data => {
+    const agrupados = {};
+
+    data.forEach(p => {
+      const key = p.titulo + '|' + p.hora;
+      if (!agrupados[key]) {
+        agrupados[key] = {
+          titulo: p.titulo,
+          hora: p.hora,
+          deporte: "otros",
+          competicion: "Competición",
+          canales: []
+        };
+      }
+
+      const enlace = Array.isArray(p.enlace) ? p.enlace : [p.enlace];
+      agrupados[key].canales.push(...enlace);
+    });
+
+    partidos = Object.values(agrupados).map(p => {
+      const titulo = p.titulo.toLowerCase();
+      if (titulo.includes("madrid") || titulo.includes("barça") || titulo.includes("liga")) {
+        p.deporte = "futbol";
+        p.competicion = "LaLiga";
+      } else if (titulo.includes("nba") || titulo.includes("basket")) {
+        p.deporte = "baloncesto";
+        p.competicion = "NBA";
+      } else if (titulo.includes("nadal") || titulo.includes("open")) {
+        p.deporte = "tenis";
+        p.competicion = "ATP";
+      }
+
+      return p;
+    });
+
+    renderTabla(partidos);
+  })
+  .catch(err => {
+    console.log("Usando datos de ejemplo debido a error o falta de JSON:", err);
+    renderTabla(partidos);
+  });
     
     function renderTabla(data) {
       const tbody = document.getElementById('tabla-partidos');
@@ -836,51 +832,154 @@
       });
     });
 
-    // ... (todo tu script original aquí)
+  // Añade esto justo antes del cierre del
 
-const API_TOKEN = "ee4bba27209c4284a551310fb797d8c3";
+// Configuración de la API Football-Data
+const API_TOKEN = "ee4bba27209c4284a551310fb797d8c3"; // Tu token de la API
 const API_URL = "https://api.football-data.org/v4/matches";
 
+// Función para actualizar el estado de los partidos usando la API
 function actualizarEstadoConAPI() {
+  // Realizar petición a la API
   fetch(API_URL, {
     headers: {
       "X-Auth-Token": API_TOKEN
     }
   })
-  .then(res => res.json())
+  .then(res => {
+    if (!res.ok) {
+      throw new Error(`Error API: ${res.status}`);
+    }
+    return res.json();
+  })
   .then(data => {
     if (!data.matches) return;
 
+    // Actualizar partidos existentes con datos de la API
     partidos = partidos.map(partido => {
+      // Buscar coincidencia entre nuestros partidos y los de la API
       const match = data.matches.find(m => {
-        const tituloAPI = `${m.homeTeam.name} vs ${m.awayTeam.name}`.toLowerCase();
-        const tituloUsuario = partido.titulo.toLowerCase();
-        return tituloUsuario.includes(m.homeTeam.name.toLowerCase()) && 
-               tituloUsuario.includes(m.awayTeam.name.toLowerCase());
+        // Intentar encontrar coincidencia por nombre de equipos
+        if (!m.homeTeam || !m.awayTeam) return false;
+        
+        const tituloPartido = partido.titulo.toLowerCase();
+        const equipoLocal = m.homeTeam.name.toLowerCase();
+        const equipoVisitante = m.awayTeam.name.toLowerCase();
+        
+        return tituloPartido.includes(equipoLocal) && 
+               tituloPartido.includes(equipoVisitante);
       });
 
       if (match) {
+        // Actualizar estado según la API
         switch (match.status) {
           case "SCHEDULED":
-            partido.estado = "upcoming"; break;
+          case "TIMED":
+          case "POSTPONED":
+            partido.estado = "upcoming";
+            break;
           case "IN_PLAY":
           case "PAUSED":
-            partido.estado = "live"; break;
+            partido.estado = "live";
+            // Añadir marcador si está disponible
+            if (match.score && match.score.fullTime) {
+              partido.marcador = `${match.score.fullTime.home ?? 0} - ${match.score.fullTime.away ?? 0}`;
+            }
+            break;
           case "FINISHED":
           case "AWARDED":
-            partido.estado = "finished"; break;
+          case "SUSPENDED":
+          case "CANCELLED":
+            partido.estado = "finished";
+            // Añadir resultado final
+            if (match.score && match.score.fullTime) {
+              partido.marcador = `${match.score.fullTime.home ?? 0} - ${match.score.fullTime.away ?? 0}`;
+            }
+            break;
         }
       }
 
       return partido;
     });
 
+    // Actualizar la tabla con los datos actualizados
     renderTabla(partidos);
+    
+    // Programar próxima actualización (cada 60 segundos)
+    setTimeout(actualizarEstadoConAPI, 60000);
   })
   .catch(err => {
     console.warn("Error al consultar Football-Data API:", err);
+    // Reintento después de 2 minutos en caso de error
+    setTimeout(actualizarEstadoConAPI, 120000);
   });
 }
+
+// Modificar la función renderTabla para incluir marcadores
+// (Reemplaza la función existente con esta versión)
+function renderTabla(data) {
+  const tbody = document.getElementById('tabla-partidos');
+  tbody.innerHTML = '';
+  
+  if (data.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align: center;">No se encontraron partidos que coincidan con tu búsqueda.</td></tr>';
+    return;
+  }
+  
+  data.forEach(p => {
+    const deporteInfo = deportes[p.deporte] || deportes['otros'];
+    
+    // Crear el texto de estado, añadiendo marcador si existe
+    
+    const fila = `
+      <tr>
+        <td>
+          <div class="match-info">
+            <div class="sport-icon">
+              <i class="${deporteInfo.icon}"></i>
+            </div>
+            <div>
+              <div class="match-teams">${p.titulo}</div>
+              <div class="match-league">${p.competicion}</div>
+            </div>
+          </div>
+        </td>
+        <td class="match-time">${p.hora}</td>
+        <td>
+        </td>
+        <td>
+          <div class="canales">
+            ${p.canales.map((enlace, i) => 
+              `<a class="canal" href="${enlace}" target="_blank">
+                <i class="fas fa-play"></i> Canal ${i + 1}
+              </a>`
+            ).join('')}
+          </div>
+        </td>
+      </tr>
+    `;
+    tbody.innerHTML += fila;
+  });
+}
+
+// Añadir estilos para los marcadores
+document.head.insertAdjacentHTML('beforeend', `
+  <style>
+    .match-score {
+      font-weight: bold;
+      font-size: 0.875rem;
+      margin-top: 0.25rem;
+    }
+    
+    .status-live .match-score {
+      color: #ffffff;
+    }
+    
+    .status-finished .match-score {
+      color: #ffffff;
+    }
+  </style>
+`);
 
 // Luego de cargar tu JSON original
 fetch('partidos_completos.json')
@@ -897,8 +996,6 @@ fetch('partidos_completos.json')
         deporte = "tenis";
       }
 
-      const estados = ["live", "upcoming", "finished"];
-      const estado = estados[Math.floor(Math.random() * estados.length)];
 
       let competicion = "Competición";
       if (titulo.includes("liga")) {
@@ -923,13 +1020,26 @@ fetch('partidos_completos.json')
       partidos = transformedData;
     }
 
-    actualizarEstadoConAPI();
+    // Renderizar tabla con datos iniciales
+    renderTabla(partidos);
+    
+    // Iniciar actualización con la API después de cargar datos iniciales
+    setTimeout(actualizarEstadoConAPI, 1000);
   })
   .catch(err => {
     console.log("Usando datos de ejemplo debido a error o falta de JSON:", err);
     renderTabla(partidos);
+    
+    // Iniciar actualización con la API incluso con datos de ejemplo
+    setTimeout(actualizarEstadoConAPI, 1000);
   });
 
+  </script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js')
+        .then(() => console.log('Service Worker registrado'));
+    }
   </script>
   
 </body>
