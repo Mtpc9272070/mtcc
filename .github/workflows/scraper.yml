@@ -18,7 +18,7 @@ jobs:
           python-version: '3.x'
 
       - name: Instalar dependencias
-        run: pip install -r requirements.txt
+        run: pip install -r requirement.txt
 
       - name: Ejecutar script
         run: python scraper.py
