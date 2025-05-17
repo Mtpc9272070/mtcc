@@ -28,10 +28,13 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Hacer commit y push si hay cambios
-        run: |
-          git add .
-          git diff --cached --quiet || git commit -m "Actualización automática del scraper"
-          git push
+- name: Hacer commit y push si hay cambios
+  run: |
+    git add partidos_completos.json
+    git diff --cached --quiet || git commit -m "Actualización automática del scraper"
+    git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/<owner>/<repo>.git
+    git push origin main
+  env:
+    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
